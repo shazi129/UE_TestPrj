@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{114DB4D5-41C1-BF42-AA02-0AB3B896886B}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "MyTestPrj",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

@@ -1,0 +1,10 @@
+.vs
+Binaries
+Content/Developers
+DerivedDataCache
+Intermediate
+Saved
+enc_temp_folder
+
+Plugins/*/Binaries
+Plugins/*/Intermediate
