@@ -3,8 +3,6 @@
 
 #include "GlobalShader.h"
 
-static FIndexBufferRHIRef CreateIndexBuffer(const uint16* Indices, uint16 NumIndices);
-
 class FTestShaderBase : public FGlobalShader
 {
 

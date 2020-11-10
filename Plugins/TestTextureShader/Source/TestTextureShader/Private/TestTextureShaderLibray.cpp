@@ -2,6 +2,18 @@
 #include "TestTextureShaderLibray.h"
 #include "TestShaderBase.h"
 #include "RHIStaticStates.h"
+#include "TestShaderUtils.h"
+
+
+BEGIN_GLOBAL_SHADER_PARAMETER_STRUCT(FSimpleUniformStruct, )
+SHADER_PARAMETER(FVector4, ColorOne)
+SHADER_PARAMETER(FVector4, ColorTwo)
+SHADER_PARAMETER(FVector4, ColorThree)
+SHADER_PARAMETER(FVector4, ColorFour)
+SHADER_PARAMETER(int32, ColorIndex)
+END_GLOBAL_SHADER_PARAMETER_STRUCT()
+IMPLEMENT_GLOBAL_SHADER_PARAMETER_STRUCT(FSimpleUniformStruct, "SimpleUniformStruct");
+
 
 class FTestTextureShaderVS : public FTestShaderBase
 {
@@ -40,9 +52,18 @@ public:
 		MyTextureSampler.Bind(Initializer.ParameterMap, TEXT("MyTextureSampler"));
 	}
 
-	void SetParameter(FRHICommandListImmediate& RHICommandList, FPixelShaderRHIRef pixelShaderRef, const FLinearColor& SimpleColor, FTextureReferenceRHIRef& SimpleTexure)
+	void SetParameter(FRHICommandListImmediate& RHICommandList, FPixelShaderRHIRef pixelShaderRef, const FTestTextureShaderStructData& StructData, FTextureReferenceRHIRef& SimpleTexure)
 	{
-		SetShaderValue(RHICommandList, pixelShaderRef, MySimpleColor, SimpleColor);
+		//SetShaderValue(RHICommandList, pixelShaderRef, MySimpleColor, SimpleColor);
+
+		FSimpleUniformStruct ShaderStructData;
+		ShaderStructData.ColorOne = StructData.ColorOne;
+		ShaderStructData.ColorTwo = StructData.ColorTwo;
+		ShaderStructData.ColorThree = StructData.ColorThree;
+		ShaderStructData.ColorFour = StructData.ColorFour;
+		ShaderStructData.ColorIndex = StructData.ColorIndex;
+
+		SetUniformBufferParameterImmediate(RHICommandList, pixelShaderRef, GetUniformBufferParameter<FSimpleUniformStruct>(), ShaderStructData);
 
 		SetTextureParameter(RHICommandList, pixelShaderRef.GetReference(), MyTexture,
 			MyTextureSampler, TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI(),
@@ -83,7 +104,7 @@ public:
 static FVertexBufferRHIRef CreateVertexBuffer()
 {
 	TResourceArray<FMyTextureVertex, VERTEXBUFFER_ALIGNMENT> Vertices;
-	Vertices.SetNumUninitialized(6);
+	Vertices.SetNumUninitialized(4);
 
 	Vertices[0].Position = FVector4(1, 1, 0, 1);
 	Vertices[0].UV = FVector2D(1, 1);
@@ -96,13 +117,6 @@ static FVertexBufferRHIRef CreateVertexBuffer()
 
 	Vertices[3].Position = FVector4(-1, -1, 0, 1);
 	Vertices[3].UV = FVector2D(0, 0);
-
-	//The final two vertices are used for the triangle optimization (a single triangle spans the entire viewport )
-	Vertices[4].Position = FVector4(-1, 1, 0, 1);
-	Vertices[4].UV = FVector2D(-1, 1);
-
-	Vertices[5].Position = FVector4(1, -1, 0, 1);
-	Vertices[5].UV = FVector2D(1, -1);
 
 	// Create vertex buffer. Fill buffer with initial data upon creation
 	FRHIResourceCreateInfo CreateInfo(&Vertices);
@@ -117,7 +131,7 @@ static void DrawTestTextureShaderRenderTarget_RenderThread(
 	FTextureRenderTargetResource* OutTextureRenderTargetResource,
 	ERHIFeatureLevel::Type FeatureLevel,
 	FName RenderTargetName,
-	FLinearColor LinearColor,
+	FTestTextureShaderStructData StructData,
 	FTextureReferenceRHIRef TextureReferenceRHI)
 {
 	check(IsInRenderingThread());
@@ -160,12 +174,12 @@ static void DrawTestTextureShaderRenderTarget_RenderThread(
 	RHICmdList.SetViewport(0, 0, 0.0f, DrawTargetResolution.X, DrawTargetResolution.Y, 1.0f);
 
 	//shader参数
-	PixelShader->SetParameter(RHICmdList, PixelShader.GetPixelShader(), LinearColor, TextureReferenceRHI);
+	PixelShader->SetParameter(RHICmdList, PixelShader.GetPixelShader(), StructData, TextureReferenceRHI);
 
 	//定点信息
 	FVertexBufferRHIRef VertexBufferRHI = CreateVertexBuffer();
 	const uint16 Indices[] = { 0, 1, 2, 2, 1, 3 };
-	FIndexBufferRHIRef IndexBufferRHI = CreateIndexBuffer(Indices, 6);
+	FIndexBufferRHIRef IndexBufferRHI = UTestShaderUtils::CreateIndexBuffer(Indices, 6);
 
 	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(IndexBufferRHI, 0, 0, 4, 0, 2, 1);
@@ -176,7 +190,7 @@ static void DrawTestTextureShaderRenderTarget_RenderThread(
 
 void UTestTextureShaderLibrary::DrawTestTextureShaderRenderTarget(AActor* ContextActor,  //能获取World的Actor
 	UTextureRenderTarget2D* RenderTarget,  //渲染目标
-	FLinearColor LinearColor,          //颜色
+	FTestTextureShaderStructData StructData,          //颜色
 	UTexture* Texture                  //纹理
 )
 {
@@ -196,7 +210,7 @@ void UTestTextureShaderLibrary::DrawTestTextureShaderRenderTarget(AActor* Contex
 	FName RenderTargetName = RenderTarget->GetFName();
 
 	ENQUEUE_RENDER_COMMAND(CaptureCommand)(
-		[TextureRenderTargetResource, RHIFeatureLevel, LinearColor, RenderTargetName, TextureReferenceRHI]
+		[TextureRenderTargetResource, RHIFeatureLevel, StructData, RenderTargetName, TextureReferenceRHI]
 	    (FRHICommandListImmediate& RHICmdList)
 		{
 			DrawTestTextureShaderRenderTarget_RenderThread(
@@ -204,7 +218,7 @@ void UTestTextureShaderLibrary::DrawTestTextureShaderRenderTarget(AActor* Contex
 				TextureRenderTargetResource,
 				RHIFeatureLevel,
 				RenderTargetName,
-				LinearColor,
+				StructData,
 				TextureReferenceRHI);
 		}
 	);
