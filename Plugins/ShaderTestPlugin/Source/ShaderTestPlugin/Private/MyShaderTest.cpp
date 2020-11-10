@@ -81,8 +81,8 @@ public:
 		SimpleColorVal.Bind(Initializer.ParameterMap, TEXT("SimpleColor"));
 	}
 
-	template<typename TShaderRHIParamRef>
-	void SetColor(FRHICommandListImmediate& RHICmdList, const TShaderRHIParamRef ShaderRHI, const FLinearColor& MyColor)
+	//template<typename TShaderRHIParamRef>
+	void SetColor(FRHICommandListImmediate& RHICmdList, const FPixelShaderRHIRef ShaderRHI, const FLinearColor& MyColor)
 	{
 		SetShaderValue(RHICmdList, ShaderRHI, SimpleColorVal, MyColor);
 	}
