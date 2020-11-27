@@ -1,0 +1,2 @@
+#include "EditInlineNewTest/EditinlineNewObject.h"
+

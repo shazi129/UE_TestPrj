@@ -14,6 +14,18 @@
 		{
 			"Name": "RenderDocPlugin",
 			"Enabled": true
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
+		},
+		{
+			"Name": "TestTextureShader",
+			"Enabled": false
+		},
+		{
+			"Name": "ShaderTestPlugin",
+			"Enabled": false
 		}
 	]
 }
