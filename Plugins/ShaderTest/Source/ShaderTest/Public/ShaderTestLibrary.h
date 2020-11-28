@@ -45,4 +45,7 @@ public:
 			FTestTextureShaderStructData StructData,          //ÑÕÉ«
 			UTexture* Texture                  //ÎÆÀí
 		);
+
+	UFUNCTION(BlueprintCallable, Category = "ShaderTestPlugin")
+		static void MyComputerShaderDraw(const UObject* WorldContextObject, UTextureRenderTarget2D* OutputRenderTarget);
 };

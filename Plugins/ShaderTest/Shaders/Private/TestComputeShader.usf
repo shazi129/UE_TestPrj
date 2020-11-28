@@ -1,17 +1,22 @@
-#include "/Engine/Private/Common.ush"
+#include "/Engine/Public/Platform.ush"
 
-RWTexture2D<uint> OutputSurface;
+RWTexture2D<float4> OutputSurface;
 
 [numthreads(32, 32, 1)]
-void MainCS(uint3 ThreadId : SV_DispatchThreadID)
+void MainCS(
+    uint3 GroupId : SV_GroupID,
+    uint3 DispatchThreadId: SV_DispatchThreadID,
+    uint3 GroupThreadId : SV_GroupThreadID)
 {
+    //Set up some variables we are going to need  
     float sizeX, sizeY;
     OutputSurface.GetDimensions(sizeX, sizeY);
-    
+  
     float2 iResolution = float2(sizeX, sizeY);
-    float2 uv = (ThreadId.xy / iResolution.xy) - 0.5f;
+    float2 uv = (DispatchThreadId.xy / iResolution.xy) - 0.5;
     float iGlobalTime = 1.0f;
-    
+  
+    //This shader code is from www.shadertoy.com, converted to HLSL by me. If you have not checked out shadertoy yet, you REALLY should!!  
     float t = iGlobalTime * 0.1 + ((0.25 + 0.05 * sin(iGlobalTime * 0.1)) / (length(uv.xy) + 0.07)) * 2.2;
     float si = sin(t);
     float co = cos(t);
@@ -48,13 +53,6 @@ void MainCS(uint3 ThreadId : SV_DispatchThreadID)
     float3 powered = pow(abs(col), float3(1.2, 1.2, 1.2));
     float3 minimized = min(powered, 1.0);
     float4 outputColor = float4(minimized, 1.0);
-  
-    //Since there are limitations on operations that can be done on certain formats when using compute shaders  
-    //I elected to go with the most flexible one (UINT 32bit) and do my packing manually to simulate an R8G8B8A8_UINT format.  
-    //There might be better ways to do this :)  
-    uint r = outputColor.r * 255.0;
-    uint g = ((uint) (outputColor.g * 255.0)) << 8;
-    uint b = ((uint) (outputColor.b * 255.0)) << 16;
-    uint a = ((uint) (outputColor.a * 255.0)) << 24;
-    OutputSurface[ThreadId.xy] = r | g | b | a;
+    
+    OutputSurface[DispatchThreadId.xy] = outputColor;
 }
