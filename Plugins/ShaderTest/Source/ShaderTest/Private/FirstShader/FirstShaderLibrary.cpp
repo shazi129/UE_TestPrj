@@ -52,11 +52,29 @@ static void FirstShader_RenderThread(
 	VertexList.Add(FVector4(1.0f, 1.0f, 0, 1.0f));
 	VertexList.Add(FVector4(-1.0f, -1.0f, 0, 1.0f));
 	VertexList.Add(FVector4(1.0f, -1.0f, 0, 1.0f));
-	FVertexBufferRHIRef VertexBufferRHI = UTestShaderUtils::CreateVertexBuffer(VertexList);
+
+	FRHIResourceCreateInfo CreateInfo;
+	FVertexBufferRHIRef VertexBufferRHI = RHICreateVertexBuffer(sizeof(FVector4) * VertexList.Num(), BUF_Volatile, CreateInfo);
+	void* VoidPtr = RHILockVertexBuffer(VertexBufferRHI, 0, sizeof(FVector4) * VertexList.Num(), RLM_WriteOnly);
+
+	FVector4* Vertices = (FVector4*)VoidPtr;
+
+	for (int i = 0; i < VertexList.Num(); i++)
+	{
+		Vertices[i] = VertexList[i];
+	}
+	RHIUnlockVertexBuffer(VertexBufferRHI);
 
 	//顶点索引
 	const uint16 Indices[] = { 0, 1, 2, 2, 1, 3 };
-	FIndexBufferRHIRef IndexBufferRHI = UTestShaderUtils::CreateIndexBuffer(Indices, 6);
+	TResourceArray<uint16, INDEXBUFFER_ALIGNMENT> IndexBuffer;
+
+	IndexBuffer.AddUninitialized(6);
+	FMemory::Memcpy(IndexBuffer.GetData(), Indices, 6 * sizeof(uint16));
+
+	// Create index buffer. Fill buffer with initial data upon creation
+	FRHIResourceCreateInfo IndexCreateInfo(&IndexBuffer);
+	FIndexBufferRHIRef IndexBufferRHI = RHICreateIndexBuffer(sizeof(uint16), IndexBuffer.GetResourceDataSize(), BUF_Static, IndexCreateInfo);
 	
 
 	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
