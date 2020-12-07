@@ -10,8 +10,6 @@ public:
 
 	FMyGlobalShaderBase(const ShaderMetaType::CompiledShaderInitializerType& Initializer);
 
-	static bool ShouldCache(EShaderPlatform Platform);
-
 	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters);
 
 	static void ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters,

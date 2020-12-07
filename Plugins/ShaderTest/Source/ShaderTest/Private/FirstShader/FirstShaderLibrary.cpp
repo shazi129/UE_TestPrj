@@ -12,14 +12,6 @@ static void FirstShader_RenderThread(
 {
 	check(IsInRenderingThread());
 
-#if WANTS_DRAW_MESH_EVENTS  
-	FString EventName;
-	TextureRenderTargetName.ToString(EventName);
-	SCOPED_DRAW_EVENTF(RHICmdList, SceneCapture, TEXT("DrawTestShader %s"), *EventName);
-#else  
-	SCOPED_DRAW_EVENT(RHICmdList, DrawUVDisplacementToRenderTarget_RenderThread);
-#endif
-
 	FRHITexture2D* RenderTargetTexture = OutTextureRenderTargetResource->GetRenderTargetTexture();
 
 	FRHIRenderPassInfo RPInfo(RenderTargetTexture, ERenderTargetActions::DontLoad_Store, OutTextureRenderTargetResource->TextureRHI);

@@ -15,7 +15,7 @@ static void DrawCheckerBoard_RenderThread(
 	check(IsInRenderingThread());
 
 	//Unbind the previously bound render targets
-	UnbindRenderTargets(RHICmdList);
+	//UnbindRenderTargets(RHICmdList);
 
 	FTexture2DRHIRef RenderTargetTexture = TextureRenderTargetResource->GetRenderTargetTexture();
 	

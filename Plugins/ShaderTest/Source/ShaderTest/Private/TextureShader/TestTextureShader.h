@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RHICommandList.h"
+#include "Common/MyShaderTypes.h"
 #include "Common/TestShaderUtils.h"
 #include "Common/MyGlobalShaderBase.h"
 

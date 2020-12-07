@@ -7,14 +7,9 @@ FMyGlobalShaderBase::FMyGlobalShaderBase(const ShaderMetaType::CompiledShaderIni
 {
 }
 
-bool FMyGlobalShaderBase::ShouldCache(EShaderPlatform Platform)
-{
-	return true;
-}
-
 bool FMyGlobalShaderBase::ShouldCompilePermutation(const FGlobalShaderPermutationParameters& Parameters)
 { 
-	return true;
+	return IsFeatureLevelSupported(Parameters.Platform, ERHIFeatureLevel::SM5);
 }
 
 void FMyGlobalShaderBase::ModifyCompilationEnvironment(const FGlobalShaderPermutationParameters& Parameters, FShaderCompilerEnvironment& OutEnvironment)

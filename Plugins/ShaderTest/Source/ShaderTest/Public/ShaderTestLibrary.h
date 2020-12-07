@@ -4,31 +4,11 @@
 *   所有外部接口  
 */
 
-#include "Common/TestShaderUtils.h"
+#include "Common/MyShaderTypes.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "ShaderTestLibrary.generated.h"
 
-USTRUCT(BlueprintType)
-struct FTestTextureShaderStructData
-{
-	GENERATED_USTRUCT_BODY()
-
-		UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FLinearColor ColorOne;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FLinearColor ColorTwo;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FLinearColor ColorThree;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FLinearColor ColorFour;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32 ColorIndex;
-};
 
 UCLASS()
 class UShaderTestLibrary : public UBlueprintFunctionLibrary
