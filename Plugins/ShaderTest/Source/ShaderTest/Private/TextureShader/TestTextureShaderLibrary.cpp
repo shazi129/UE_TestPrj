@@ -32,25 +32,14 @@ static void DrawTestTextureShaderRenderTarget_RenderThread(
 {
 	check(IsInRenderingThread());
 
-#if WANTS_DRAW_MESH_EVENTS
-	FString EventName;
-	RenderTargetName.ToString(EventName);
-	SCOPED_DRAW_EVENTF(RHICmdList, SceneCapture, TEXT("DrawTestShader %s"), *EventName);
-#else
-	SCOPED_DRAW_EVENT(RHICmdList, DrawUVDisplacementToRenderTarget_RenderThread);
-#endif
-
 	FRHITexture2D* RenderTargetTexture = OutTextureRenderTargetResource->GetRenderTargetTexture();
 
 	FRHIRenderPassInfo RPInfo(RenderTargetTexture, ERenderTargetActions::DontLoad_Store, OutTextureRenderTargetResource->TextureRHI);
 	RHICmdList.BeginRenderPass(RPInfo, TEXT("DrawTestShader"));
 
-
 	FGlobalShaderMap* GlobalShaderMap = GetGlobalShaderMap(FeatureLevel);
 	TShaderMapRef<FTestTextureShaderVS> VertexShader(GlobalShaderMap);
 	TShaderMapRef<FTestTextureShaderPS> PixelShader(GlobalShaderMap);
-
-
 
 	FMyTextureVertexDeclaration VertexDec;
 	VertexDec.InitRHI();
@@ -71,10 +60,21 @@ static void DrawTestTextureShaderRenderTarget_RenderThread(
 	FIntPoint DrawTargetResolution(OutTextureRenderTargetResource->GetSizeX(), OutTextureRenderTargetResource->GetSizeY());
 	RHICmdList.SetViewport(0, 0, 0.0f, DrawTargetResolution.X, DrawTargetResolution.Y, 1.0f);
 
-	//shader参数
-	PixelShader->SetParameter(RHICmdList, PixelShader.GetPixelShader(), StructData, TextureReferenceRHI);
+	//设置参数
+	FSimpleUniformStruct SimpleUniformStruct;
+	SimpleUniformStruct.ColorOne = StructData.ColorOne;
+	SimpleUniformStruct.ColorTwo = StructData.ColorTwo;
+	SimpleUniformStruct.ColorThree = StructData.ColorThree;
+	SimpleUniformStruct.ColorFour = StructData.ColorFour;
+	SimpleUniformStruct.ColorIndex = StructData.ColorIndex;
 
-	//定点信息
+	FTestTextureShaderPS::FParameters Parameters;
+	Parameters.MyTextrue = TextureReferenceRHI;
+	Parameters.MyTextureSampler = TStaticSamplerState<SF_Trilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
+	Parameters.SimpleUniformStruct = TUniformBufferRef<FSimpleUniformStruct>::CreateUniformBufferImmediate(SimpleUniformStruct, UniformBuffer_MultiFrame);
+	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), Parameters);
+
+	//顶点和UI信息
 	TArray<FMyTextureVertex> VertexList;
 	VertexList.Add(FMyTextureVertex(FVector4(1, 1, 0, 1), FVector2D(1, 1)));
 	VertexList.Add(FMyTextureVertex(FVector4(-1, 1, 0, 1), FVector2D(0, 1)));
@@ -87,7 +87,6 @@ static void DrawTestTextureShaderRenderTarget_RenderThread(
 
 	RHICmdList.SetStreamSource(0, VertexBufferRHI, 0);
 	RHICmdList.DrawIndexedPrimitive(IndexBufferRHI, 0, 0, 4, 0, 2, 1);
-
 
 	RHICmdList.EndRenderPass();
 }

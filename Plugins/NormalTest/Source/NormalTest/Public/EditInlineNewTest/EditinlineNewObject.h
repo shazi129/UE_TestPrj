@@ -1,6 +1,8 @@
+#pragma once
+
 #include "EditinlineNewObject.generated.h"
 
-UCLASS(EditInlineNew, BlueprintType)
+UCLASS(EditInlineNew, BlueprintType, Blueprintable)
 class UEditinlineNewObject : public UObject
 {
 	GENERATED_BODY()
